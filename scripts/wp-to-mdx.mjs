@@ -78,6 +78,18 @@ function findStatementEnd(sql, start) {
   return -1;
 }
 
+// Normalise un slug WordPress : supprime les sequences %xx (emoji URL-encoded)
+// car Vite/Rollup ne resout pas les imports MDX dont le nom de fichier contient
+// des %. Retourne { slug, legacySlug } : si le slug est inchange, legacySlug est null.
+function normalizeSlug(slug) {
+  if (!slug) return { slug, legacySlug: null };
+  const cleaned = slug
+    .replace(/%[0-9a-fA-F]{2}/g, '')   // retire les %xx
+    .replace(/-+/g, '-')               // collapse les dashs multiples
+    .replace(/^-|-$/g, '');            // trim dashs en debut/fin
+  return cleaned === slug ? { slug, legacySlug: null } : { slug: cleaned, legacySlug: slug };
+}
+
 function extractRows(sql, tableName) {
   const fullName = TABLE_PREFIX + tableName;
   const prefixRe = new RegExp('INSERT INTO `' + fullName + '`(?:\\s*\\([^)]+\\))?\\s+VALUES\\s+', 'g');
@@ -250,7 +262,8 @@ const attachments = new Map();
 for (const r of postsRows) {
   const id = parseInt(r[0], 10);
   if (r[20] === 'post' && r[7] === 'publish') {
-    articles.push({ id, date: r[2], content: r[4] || '', title: r[5] || '', excerpt: r[6] || '', slug: r[11] });
+    const { slug: normSlug, legacySlug } = normalizeSlug(r[11]);
+    articles.push({ id, date: r[2], content: r[4] || '', title: r[5] || '', excerpt: r[6] || '', slug: normSlug, legacySlug });
   } else if (r[20] === 'attachment') {
     attachments.set(id, { guid: r[18] });
   }
@@ -343,6 +356,7 @@ for (const a of articles.sort((x, y) => x.id - y.id)) {
   lines.push('speakers: []');
   if (yt.url) lines.push('youtube_url: ' + yamlString(yt.url));
   lines.push('tags: ' + yamlArray(tags));
+  if (a.legacySlug) lines.push('legacy_slug: ' + yamlString(a.legacySlug));
   lines.push('legacy_wp_id: ' + a.id);
   lines.push('---');
   lines.push('');
@@ -358,5 +372,11 @@ for (const a of articles.sort((x, y) => x.id - y.id)) {
   written++;
 }
 
+const renamed = articles.filter(a => a.legacySlug);
+if (renamed.length > 0) {
+  console.log('');
+  console.log('Slugs renommes (a ajouter en redirection 301) :');
+  for (const a of renamed) console.log('  /' + a.legacySlug + '/  ->  /' + a.slug + '/');
+}
 console.log('MDX ecrits: ' + written);
 console.log('Covers: ' + coversOk);

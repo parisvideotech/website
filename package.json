@@ -11,6 +11,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
+    "check:mdx": "node scripts/validate-mdx.mjs",
+    "migrate": "node scripts/wp-to-mdx.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -20,6 +22,7 @@
     "@astrojs/sitemap": "^3.2.0"
   },
   "devDependencies": {
+    "@mdx-js/mdx": "^3.0.0",
     "@types/node": "^22.0.0",
     "prettier": "^3.3.0",
     "prettier-plugin-astro": "^0.14.0",

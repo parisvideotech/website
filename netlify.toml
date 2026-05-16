@@ -118,6 +118,19 @@
   status = 301
   force = true
 
+# Slugs migrés (emoji URL-encoded retirés car incompatibles avec Vite/Rollup)
+[[redirects]]
+  from = "/paris-video-tech-23-all-i-want-for-christmas-is-live-%f0%9f%8e%84/"
+  to = "/paris-video-tech-23-all-i-want-for-christmas-is-live/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/paris-video-tech-24-pvt-se-met-au-vert-%f0%9f%8c%bf/"
+  to = "/paris-video-tech-24-pvt-se-met-au-vert/"
+  status = 301
+  force = true
+
 # Flux RSS WordPress → home
 [[redirects]]
   from = "/feed"
