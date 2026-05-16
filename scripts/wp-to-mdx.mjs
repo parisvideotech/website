@@ -107,41 +107,52 @@ function decodeHtmlEntities(s) {
     .replace(/&[a-zA-Z]+;/g, (m) => (named[m] !== undefined ? named[m] : m));
 }
 
-// Void elements HTML : doivent être self-closing en MDX/JSX
 const VOID_TAGS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
 
 function autoCloseVoidTags(html) {
   let s = html;
   for (const tag of VOID_TAGS) {
-    // <tag ... > devient <tag ... /> (sauf si déjà /<)
     const re = new RegExp('<(' + tag + ')((?:\\s[^>]*?)?)\\s*>', 'gi');
     s = s.replace(re, (match, t, attrs) => {
-      if (attrs.trimEnd().endsWith('/')) return match; // déjà self-closing
+      if (attrs.trimEnd().endsWith('/')) return match;
       return '<' + t + attrs + ' />';
     });
   }
   return s;
 }
 
-// Neutralise les shortcodes WP non gérés en commentaires HTML
-function neutralizeShortcodes(html) {
-  // Pattern : [xxx ...]...[/xxx]
-  let s = html.replace(/\[([a-z_][a-z0-9_-]*)\b[^\]]*\][\s\S]*?\[\/\1\]/gi, (m) => {
-    return '<!-- legacy shortcode removed -->';
-  });
-  // Pattern : [xxx ...] (self-closing, liste limitée pour ne pas casser les liens Markdown)
-  s = s.replace(/\[(slideshare|pdfviewer|caption|embed|gallery|playlist|audio|video|youtube|vimeo)\b[^\]]*\]/gi, (m) => {
-    return '<!-- legacy shortcode removed -->';
-  });
+// Supprime les shortcodes WP non geres (et tout ce qu'ils contiennent).
+function stripShortcodes(html) {
+  let s = html.replace(/\[([a-z_][a-z0-9_-]*)\b[^\]]*\][\s\S]*?\[\/\1\]/gi, '');
+  s = s.replace(/\[(slideshare|pdfviewer|caption|embed|gallery|playlist|audio|video|youtube|vimeo)\b[^\]]*\]/gi, '');
   return s;
+}
+
+// MDX n'accepte pas les commentaires HTML <!-- ... -->. On les supprime tous.
+function stripHtmlComments(html) {
+  return html.replace(/<!--[\s\S]*?-->/g, '');
+}
+// Supprime les <style>...</style> et <script>...</script> inline (vestiges Elementor).
+// Necessaire car les { } CSS sont interpretes comme JSX par MDX.
+function stripStyleAndScript(html) {
+  let s = html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
+  s = s.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+  return s;
+}
+// Echappe les { et } restants pour eviter qu'ils soient interpretes comme JSX par MDX.
+// On les passe en entites HTML qui rendront le caractere brut a l'affichage.
+function escapeCurlyBraces(html) {
+  return html.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
 }
 
 function cleanContent(html) {
   if (!html) return '';
-  let s = html.replace(/<!--\s*\/?wp:[^>]*-->/g, '');  // Gutenberg comments
-  s = decodeHtmlEntities(s);
-  s = neutralizeShortcodes(s);
+  let s = decodeHtmlEntities(html);
+  s = stripShortcodes(s);
+  s = stripHtmlComments(s);
+  s = stripStyleAndScript(s);
   s = autoCloseVoidTags(s);
+  s = escapeCurlyBraces(s);
   s = s.replace(/\n{3,}/g, '\n\n');
   return s.trim();
 }
@@ -168,17 +179,12 @@ function yamlArray(arr) {
 }
 
 console.log('=== Migration WordPress vers MDX ===');
-console.log('SQL    : ' + SQL_PATH);
-console.log('Uploads: ' + UPLOADS);
-
 if (!fs.existsSync(SQL_PATH)) { console.error('SQL introuvable'); process.exit(1); }
 
 const sql = fs.readFileSync(SQL_PATH, 'utf8');
 console.log('SQL: ' + (sql.length / 1024 / 1024).toFixed(1) + ' Mo');
 
 const postsRows = extractRows(sql, 'posts');
-console.log('wp_posts: ' + postsRows.length + ' rows');
-
 const articles = [];
 const attachments = new Map();
 for (const r of postsRows) {
@@ -196,7 +202,6 @@ const thumb = new Map();
 for (const r of postmetaRows) {
   if (r[2] === '_thumbnail_id' && r[3]) thumb.set(parseInt(r[1], 10), parseInt(r[3], 10));
 }
-console.log('Thumbnails: ' + thumb.size);
 
 const termsRows = extractRows(sql, 'terms');
 const taxonomyRows = extractRows(sql, 'term_taxonomy');
@@ -219,12 +224,11 @@ for (const r of relRows) {
     }
   }
 }
-console.log('Posts tagges: ' + tagsByPost.size);
 
 fs.mkdirSync(OUT_MDX, { recursive: true });
 fs.mkdirSync(OUT_IMG, { recursive: true });
 
-let written = 0, coversOk = 0, coversMiss = 0;
+let written = 0, coversOk = 0;
 for (const a of articles.sort((x, y) => x.id - y.id)) {
   let coverPath = null, coverAlt = null;
   const tid = thumb.get(a.id);
@@ -243,8 +247,8 @@ for (const a of articles.sort((x, y) => x.id - y.id)) {
             coverPath = '/images/meetups/' + destName;
             coverAlt = decodeHtmlEntities(a.title);
             coversOk++;
-          } catch (e) { coversMiss++; }
-        } else { coversMiss++; }
+          } catch (e) {}
+        }
       }
     }
   }
@@ -290,4 +294,4 @@ for (const a of articles.sort((x, y) => x.id - y.id)) {
 }
 
 console.log('MDX ecrits: ' + written);
-console.log('Covers: ' + coversOk + ' (' + coversMiss + ' manquants)');
+console.log('Covers: ' + coversOk);

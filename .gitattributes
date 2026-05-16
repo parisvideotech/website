@@ -1,0 +1,46 @@
+# Force LF (Unix) line endings sur tous les fichiers texte du repo,
+# peu importe l'OS du contributeur. Netlify build sur Linux, donc on
+# normalise en LF côté repo. Ça évite les warnings "LF will be replaced
+# by CRLF" sous Windows et garde les diffs propres.
+
+* text=auto eol=lf
+
+# --- Texte explicite (au cas où l'auto-detect se trompe) ---
+*.astro    text eol=lf
+*.css      text eol=lf
+*.html     text eol=lf
+*.js       text eol=lf
+*.json     text eol=lf
+*.md       text eol=lf
+*.mdx      text eol=lf
+*.mjs      text eol=lf
+*.svg      text eol=lf
+*.toml     text eol=lf
+*.ts       text eol=lf
+*.tsx      text eol=lf
+*.txt      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.prettierrc text eol=lf
+.nvmrc     text eol=lf
+
+# --- Binaires (jamais convertir, jamais differ) ---
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.webp     binary
+*.avif     binary
+*.gif      binary
+*.ico      binary
+*.pdf      binary
+*.ttf      binary
+*.otf      binary
+*.woff     binary
+*.woff2    binary
+*.eot      binary
+*.zip      binary
+*.tar.gz   binary
+*.mp4      binary
+*.webm     binary
