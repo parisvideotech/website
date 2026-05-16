@@ -144,6 +144,61 @@ function stripStyleAndScript(html) {
 function escapeCurlyBraces(html) {
   return html.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
 }
+// Repare le HTML pour MDX : retire les balises de fermeture orphelines
+// et ferme les balises ouvertes laissees en suspens.
+// Approche stack-based simple, suffit pour 95% des cas du HTML WordPress.
+// Supprime les attributs style="..." inline (vestiges Word/Outlook/Elementor).
+// Notre design system couvre la typographie. MDX 3 accepte techniquement
+// style="..." en mode HTML mais on prefere s'en debarrasser pour eliminer
+// toute friction potentielle avec le parseur.
+function stripInlineStyleAttr(html) {
+  return html.replace(/\s+style\s*=\s*"[^"]*"/gi, '')
+             .replace(/\s+style\s*=\s*'[^']*'/gi, '');
+}
+
+function repairHtml(html) {
+  const VOID = new Set(VOID_TAGS);
+  // Match <tag>, </tag>, <tag ... /> et <tag ...>
+  const tagRe = /<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*?>/g;
+  const stack = [];
+  const parts = [];
+  let lastIdx = 0;
+  let m;
+  while ((m = tagRe.exec(html)) !== null) {
+    const full = m[0];
+    const tagName = m[1].toLowerCase();
+    const isClose = full.startsWith('</');
+    const isSelfClose = !isClose && (VOID.has(tagName) || /\/\s*>$/.test(full));
+
+    parts.push(html.slice(lastIdx, m.index));
+
+    if (isSelfClose) {
+      parts.push(full);
+    } else if (isClose) {
+      const idx = stack.lastIndexOf(tagName);
+      if (idx !== -1) {
+        // Fermer les balises ouvertes entre stack[idx+1..top] avant
+        for (let i = stack.length - 1; i > idx; i--) {
+          parts.push('</' + stack[i] + '>');
+        }
+        parts.push(full);
+        stack.length = idx;
+      }
+      // Sinon : balise orpheline, on l'omet
+    } else {
+      stack.push(tagName);
+      parts.push(full);
+    }
+
+    lastIdx = m.index + full.length;
+  }
+  parts.push(html.slice(lastIdx));
+  // Fermer les balises encore ouvertes en fin
+  while (stack.length > 0) {
+    parts.push('</' + stack.pop() + '>');
+  }
+  return parts.join('');
+}
 
 function cleanContent(html) {
   if (!html) return '';
@@ -151,7 +206,9 @@ function cleanContent(html) {
   s = stripShortcodes(s);
   s = stripHtmlComments(s);
   s = stripStyleAndScript(s);
+  s = stripInlineStyleAttr(s);
   s = autoCloseVoidTags(s);
+  s = repairHtml(s);
   s = escapeCurlyBraces(s);
   s = s.replace(/\n{3,}/g, '\n\n');
   return s.trim();
