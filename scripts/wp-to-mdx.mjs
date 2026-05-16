@@ -210,8 +210,11 @@ function cleanContent(html) {
   s = autoCloseVoidTags(s);
   s = repairHtml(s);
   s = escapeCurlyBraces(s);
-  s = s.replace(/\n{3,}/g, '\n\n');
-  return s.trim();
+  // On collapse tout le whitespace en un seul espace : evite que MDX
+  // interprete des sauts de ligne comme separateurs de paragraphes markdown
+  // dans du HTML inline migre depuis WordPress.
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
 }
 
 function extractYouTubeUrl(content) {
@@ -343,7 +346,12 @@ for (const a of articles.sort((x, y) => x.id - y.id)) {
   lines.push('legacy_wp_id: ' + a.id);
   lines.push('---');
   lines.push('');
+  // Wrapper dans une div pour que MDX traite le contenu HTML legacy comme un bloc opaque,
+  // sans essayer de parser des paragraphes markdown a l'interieur (qui plantent
+  // quand du HTML inline chevauche des sauts de ligne).
+  lines.push('<div class="legacy-content">');
   lines.push(content);
+  lines.push('</div>');
   lines.push('');
 
   fs.writeFileSync(path.join(OUT_MDX, a.slug + '.mdx'), lines.join('\n'), 'utf8');
