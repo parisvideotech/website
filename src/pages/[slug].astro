@@ -1,0 +1,231 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import YouTubeEmbed from '@/components/YouTubeEmbed.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+/**
+ * Route catch-all pour les articles meetups.
+ * Chaque fichier MDX dans `src/content/meetups/` génère une page à `/<slug>/`.
+ */
+export async function getStaticPaths() {
+  const meetups = await getCollection('meetups', ({ data }) => !data.draft && data.status !== 'draft');
+  return meetups.map((meetup) => ({
+    params: { slug: meetup.slug },
+    props: { meetup },
+  }));
+}
+
+type Props = { meetup: CollectionEntry<'meetups'> };
+const { meetup } = Astro.props;
+const { Content } = await meetup.render();
+
+const formattedDate = meetup.data.date.toLocaleDateString('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+// JSON-LD Event pour le SEO.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: meetup.data.title,
+  startDate: meetup.data.date.toISOString(),
+  ...(meetup.data.location && {
+    location: { '@type': 'Place', name: meetup.data.location, address: 'Paris, France' },
+  }),
+  organizer: {
+    '@type': 'Organization',
+    name: 'Paris Video Tech',
+    url: 'https://parisvideotech.com/',
+  },
+  description: meetup.data.summary,
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+};
+---
+
+<BaseLayout
+  title={meetup.data.title}
+  description={meetup.data.summary}
+  ogType="article"
+>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={JSON.stringify(jsonLd)}
+  />
+
+  <article class="meetup-article">
+    <header class="meetup-article__header">
+      <div class="container">
+        <p class="meetup-article__eyebrow">
+          {formattedDate}
+          {meetup.data.location ? ` — ${meetup.data.location}` : ''}
+        </p>
+        <h1>{meetup.data.title}</h1>
+        <p class="meetup-article__summary">{meetup.data.summary}</p>
+      </div>
+    </header>
+
+    <div class="container meetup-article__body">
+      {
+        meetup.data.speakers.length > 0 && (
+          <section class="speakers">
+            <h2>Intervenants</h2>
+            <ul>
+              {meetup.data.speakers.map((s) => (
+                <li class="speaker">
+                  {s.linkedin ? (
+                    <a href={s.linkedin} target="_blank" rel="noopener noreferrer">
+                      <strong>{s.name}</strong>
+                    </a>
+                  ) : (
+                    <strong>{s.name}</strong>
+                  )}
+                  {s.role || s.company ? (
+                    <span class="speaker__meta">
+                      {' — '}
+                      {[s.role, s.company].filter(Boolean).join(', ')}
+                    </span>
+                  ) : null}
+                  {s.talk_title && <p class="speaker__talk">{s.talk_title}</p>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+
+      <section class="content">
+        <Content />
+      </section>
+
+      {
+        meetup.data.youtube_url && (
+          <section class="video">
+            <h2>Replay</h2>
+            <YouTubeEmbed url={meetup.data.youtube_url} title={meetup.data.title} />
+            <p class="video__external">
+              <a href={meetup.data.youtube_url} target="_blank" rel="noopener noreferrer">
+                Ouvrir sur YouTube →
+              </a>
+            </p>
+          </section>
+        )
+      }
+
+      {
+        meetup.data.tags.length > 0 && (
+          <footer class="tags">
+            <ul>
+              {meetup.data.tags.map((tag) => (
+                <li>{tag}</li>
+              ))}
+            </ul>
+          </footer>
+        )
+      }
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .meetup-article__header {
+    background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
+    padding-block: var(--space-16);
+  }
+
+  .meetup-article__eyebrow {
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    margin-bottom: var(--space-3);
+  }
+
+  .meetup-article__summary {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-muted);
+    max-width: 65ch;
+    margin-top: var(--space-4);
+  }
+
+  .meetup-article__body {
+    padding-block: var(--space-12);
+  }
+
+  .meetup-article__body h2 {
+    margin-top: var(--space-10);
+    margin-bottom: var(--space-4);
+  }
+
+  .speaker {
+    margin-bottom: var(--space-3);
+  }
+
+  .speaker__meta {
+    color: var(--color-text-muted);
+  }
+
+  .speaker__talk {
+    font-style: italic;
+    color: var(--color-text-muted);
+    margin-top: var(--space-1);
+  }
+
+  .content {
+    max-width: 65ch;
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .content :global(p) {
+    margin-bottom: var(--space-4);
+  }
+
+  .content :global(h2),
+  .content :global(h3) {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-3);
+  }
+
+  .video {
+    margin-top: var(--space-10);
+    max-width: 100%;
+  }
+
+  .video :global(.yt-embed) {
+    margin-block: var(--space-4);
+  }
+
+  .video__external {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-align: right;
+    margin-top: var(--space-2);
+  }
+
+  .tags {
+    margin-top: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .tags ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .tags li {
+    background-color: var(--color-surface);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+</style>

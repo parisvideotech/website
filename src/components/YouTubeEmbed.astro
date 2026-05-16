@@ -1,0 +1,166 @@
+---
+//
+// <YouTubeEmbed url="..." title="..." />
+//
+// Embed YouTube "respectueux" :
+//   - Affiche d'abord une miniature (i.ytimg.com), pas d'iframe → 0 cookie tiers.
+//   - Au clic, on remplace par l'iframe vers youtube-nocookie.com → cookies
+//     YouTube minimisés (mode de confidentialité renforcée).
+//   - Si JS désactivé, on tombe sur un lien direct YouTube en fallback.
+//
+// Plus rapide et plus privacy-friendly qu'un iframe direct.
+//
+
+interface Props {
+  /** URL complète youtube.com/watch?v=... ou youtu.be/... */
+  url?: string;
+  /** Alternative : ID YouTube en direct. */
+  videoId?: string;
+  /** Titre pour l'accessibilité (et alt de la miniature). */
+  title?: string;
+}
+
+const { url, videoId: explicitId, title = 'Replay vidéo' } = Astro.props;
+
+function extractId(u: string | undefined): string | null {
+  if (!u) return null;
+  const m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{6,})/);
+  return m ? m[1] : null;
+}
+
+const videoId = explicitId ?? extractId(url);
+
+if (!videoId) {
+  throw new Error("YouTubeEmbed: aucun ID vidéo. Passez `url` ou `videoId`.");
+}
+
+// hqdefault est garanti disponible (480x360), maxresdefault parfois non.
+// On peut éventuellement servir une <picture> avec srcset si on veut HD.
+const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+// autoplay=1 car déclenché par interaction utilisateur (gesture user OK).
+// rel=0 → pas de vidéos suggérées d'autres chaînes à la fin.
+const embedSrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+---
+
+<div class="yt-embed" data-embed-src={embedSrc} data-title={title}>
+  <button
+    type="button"
+    class="yt-embed__btn"
+    aria-label={`Lire la vidéo : ${title}`}
+  >
+    <img
+      src={thumbnail}
+      alt=""
+      loading="lazy"
+      width="480"
+      height="360"
+      class="yt-embed__thumb"
+    />
+    <span class="yt-embed__play" aria-hidden="true">
+      <svg viewBox="0 0 68 48" width="68" height="48" focusable="false">
+        <path
+          fill="#CE031B"
+          d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,0.13,34,0,34,0S12.21,0.13,6.9,1.55C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z"
+        />
+        <path fill="#fff" d="M 45,24 27,14 27,34 z" />
+      </svg>
+    </span>
+  </button>
+
+  <noscript>
+    <a class="yt-embed__fallback" href={watchUrl} target="_blank" rel="noopener noreferrer">
+      Voir le replay sur YouTube
+    </a>
+  </noscript>
+</div>
+
+<script>
+  // Attache le handler de clic à chaque instance de YouTubeEmbed sur la page.
+  document.querySelectorAll<HTMLDivElement>('.yt-embed').forEach((el) => {
+    const btn = el.querySelector<HTMLButtonElement>('.yt-embed__btn');
+    const embedSrc = el.dataset.embedSrc;
+    const title = el.dataset.title || 'Lecteur YouTube';
+    if (!btn || !embedSrc) return;
+
+    btn.addEventListener('click', () => {
+      const iframe = document.createElement('iframe');
+      iframe.src = embedSrc;
+      iframe.title = title;
+      iframe.allow =
+        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.allowFullscreen = true;
+      iframe.loading = 'lazy';
+      iframe.setAttribute('frameborder', '0');
+      iframe.classList.add('yt-embed__iframe');
+      btn.replaceWith(iframe);
+    });
+  });
+</script>
+
+<style>
+  .yt-embed {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--color-text);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+
+  .yt-embed__btn,
+  .yt-embed :global(.yt-embed__iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .yt-embed__btn {
+    padding: 0;
+    cursor: pointer;
+    background-color: var(--color-text);
+    display: block;
+  }
+
+  .yt-embed__thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter var(--transition-fast), transform var(--transition-base);
+  }
+
+  .yt-embed__btn:hover .yt-embed__thumb,
+  .yt-embed__btn:focus-visible .yt-embed__thumb {
+    filter: brightness(0.85);
+    transform: scale(1.02);
+  }
+
+  .yt-embed__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+    transition: transform var(--transition-fast);
+  }
+
+  .yt-embed__btn:hover .yt-embed__play,
+  .yt-embed__btn:focus-visible .yt-embed__play {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .yt-embed__fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-on-primary);
+    text-decoration: underline;
+    background-color: var(--color-text);
+  }
+</style>

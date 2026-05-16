@@ -1,0 +1,237 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/Button.astro';
+import MeetupCard from '@/components/MeetupCard.astro';
+import { SITE } from '@/data/site';
+import { getCollection } from 'astro:content';
+import sponsors from '@/data/sponsors.json';
+
+// Récupération de tous les meetups, sauf draft.
+const allMeetups = await getCollection('meetups', ({ data }) => !data.draft && data.status !== 'draft');
+
+// Prochaine conférence (statut "upcoming") — il ne doit y en avoir qu'une.
+const upcoming = allMeetups.find((m) => m.data.status === 'upcoming');
+
+// 6 derniers meetups passés (tri descendant par date).
+const recent = allMeetups
+  .filter((m) => m.data.status === 'past')
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 6);
+---
+
+<BaseLayout description={SITE.description}>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero__title">{SITE.tagline}</h1>
+
+      {
+        upcoming && (
+          <div class="hero__upcoming">
+            <p class="hero__upcoming-eyebrow">Prochain meetup</p>
+            <h2 class="hero__upcoming-title">{upcoming.data.title}</h2>
+            <p class="hero__upcoming-date">
+              {upcoming.data.date.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+              {upcoming.data.location ? ` — ${upcoming.data.location}` : ''}
+            </p>
+            <p class="hero__upcoming-summary">{upcoming.data.summary}</p>
+          </div>
+        )
+      }
+
+      <div class="hero__cta">
+        <Button href={SITE.social.meetup} external>Assistez aux événements</Button>
+        <Button href="/rejoignez-nous/" variant="ghost">Rejoignez-nous</Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Derniers meetups -->
+  <section class="recent">
+    <div class="container">
+      <h2>Nos meetups récents</h2>
+      {
+        recent.length === 0 ? (
+          <p class="recent__empty">
+            Les meetups passés seront affichés ici une fois la migration depuis WordPress effectuée.
+          </p>
+        ) : (
+          <div class="recent__grid">
+            {recent.map((meetup) => <MeetupCard meetup={meetup} />)}
+          </div>
+        )
+      }
+      <p class="recent__more">
+        <a href="/meetups-recents/">Voir tous les meetups →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- À propos -->
+  <section id="about-us" class="about">
+    <div class="container">
+      <h2>À propos</h2>
+      <p>
+        Paris Video Tech est une communauté d'ingénieurs, développeurs et amateurs de la technique
+        vidéo en ligne. Chaque trimestre, nos meetups sont l'occasion de se retrouver autour de
+        tous les sujets techniques dans le workflow vidéo : players HTML5, encoding, transcoding,
+        distribution, analytics, publicité, monétisation, et bien d'autres !
+      </p>
+      <p>
+        <a href="/a-propos/">En savoir plus →</a>
+      </p>
+      <p class="about__support">
+        <Button href={SITE.donations.helloasso} external>Nous soutenir</Button>
+      </p>
+    </div>
+  </section>
+
+  <!-- Sponsors -->
+  <section class="sponsors">
+    <div class="container">
+      <h2>Nos sponsors</h2>
+      <ul class="sponsors__grid">
+        {
+          sponsors.map((sponsor) => (
+            <li>
+              <a href={sponsor.url} target="_blank" rel="noopener noreferrer">
+                <img src={sponsor.logo} alt={sponsor.name} loading="lazy" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  section {
+    padding-block: var(--space-16);
+  }
+
+  .hero {
+    padding-block: var(--space-20);
+    background: linear-gradient(180deg, #fff 0%, var(--color-surface) 100%);
+  }
+
+  .hero__title {
+    font-size: clamp(var(--font-size-3xl), 5vw, var(--font-size-5xl));
+    color: var(--color-text);
+    text-align: center;
+    margin-bottom: var(--space-12);
+    max-width: 28ch;
+    margin-inline: auto;
+  }
+
+  .hero__upcoming {
+    background-color: var(--color-background);
+    border-left: 5px solid var(--color-primary);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    max-width: 700px;
+    margin-inline: auto;
+  }
+
+  .hero__upcoming-eyebrow {
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    margin-bottom: var(--space-2);
+  }
+
+  .hero__upcoming-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-2);
+  }
+
+  .hero__upcoming-date {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    justify-content: center;
+  }
+
+  .recent {
+    background-color: var(--color-background);
+  }
+
+  .recent h2 {
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .recent__empty {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .recent__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+
+  .recent__more {
+    text-align: center;
+  }
+
+  .about {
+    background-color: var(--color-surface);
+  }
+
+  .about h2 {
+    margin-bottom: var(--space-4);
+  }
+
+  .about p {
+    max-width: 720px;
+    margin-bottom: var(--space-4);
+  }
+
+  .about__support {
+    margin-top: var(--space-6);
+  }
+
+  .sponsors h2 {
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .sponsors__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-6);
+    align-items: center;
+    justify-items: center;
+  }
+
+  .sponsors__grid img {
+    max-height: 80px;
+    width: auto;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: filter var(--transition-fast), opacity var(--transition-fast);
+  }
+
+  .sponsors__grid a:hover img {
+    filter: grayscale(0);
+    opacity: 1;
+  }
+</style>

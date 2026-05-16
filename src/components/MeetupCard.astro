@@ -1,0 +1,219 @@
+---
+//
+// <MeetupCard meetup={...} variant="default | compact" />
+//
+// Carte de meetup utilisée sur la home et la page /meetups-recents/.
+// Affiche une miniature (priorité : YouTube maxres > YouTube hq > cover locale > placeholder),
+// un titre, une date et un résumé. Toute la carte est cliquable.
+//
+
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  meetup: CollectionEntry<'meetups'>;
+  /** "default" = grande carte verticale ; "compact" = horizontale plus dense. */
+  variant?: 'default' | 'compact';
+}
+
+const { meetup, variant = 'default' } = Astro.props;
+
+function ytIdFromUrl(u: string | undefined | null): string | null {
+  if (!u) return null;
+  const m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{6,})/);
+  return m ? m[1] : null;
+}
+
+const ytId = ytIdFromUrl(meetup.data.youtube_url);
+
+// Priorité de la source d'image :
+//   1. YouTube maxresdefault (1280x720) — meilleure qualité
+//   2. Fallback YouTube hqdefault (480x360) — toujours disponible
+//   3. Cover locale du meetup (depuis le frontmatter)
+//   4. Rien (placeholder coloré CSS)
+const ytMaxres = ytId ? `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg` : null;
+const ytFallback = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : null;
+
+// Image principale et fallback à appliquer si l'image charge mais est en réalité un placeholder.
+let imageSrc: string | null = null;
+let imageFallback: string | null = null;
+
+if (ytMaxres) {
+  imageSrc = ytMaxres;
+  imageFallback = ytFallback;
+} else if (meetup.data.cover) {
+  imageSrc = meetup.data.cover;
+}
+
+const imageAlt = meetup.data.cover_alt ?? meetup.data.title;
+
+const formattedDate = meetup.data.date.toLocaleDateString('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+const href = `/${meetup.slug}/`;
+---
+
+<article class:list={['meetup-card', `meetup-card--${variant}`]}>
+  <a href={href} class="meetup-card__link">
+    <div class="meetup-card__media">
+      {imageSrc ? (
+        <img
+          src={imageSrc}
+          data-fallback={imageFallback}
+          alt={imageAlt}
+          loading="lazy"
+          width="1280"
+          height="720"
+        />
+      ) : (
+        <div class="meetup-card__placeholder" aria-hidden="true">
+          <span>{meetup.data.title.split(' ').slice(0, 4).join(' ')}</span>
+        </div>
+      )}
+    </div>
+    <div class="meetup-card__body">
+      <p class="meetup-card__date">{formattedDate}</p>
+      <h3 class="meetup-card__title">{meetup.data.title}</h3>
+      <p class="meetup-card__summary">{meetup.data.summary}</p>
+    </div>
+  </a>
+</article>
+
+<script>
+  // Fallback automatique : si la miniature maxresdefault charge mais correspond
+  // au placeholder 120x90 de YouTube (HD non disponible pour les vidéos anciennes),
+  // on bascule sur hqdefault. Le `error` couvre aussi les vrais 404.
+  document.querySelectorAll<HTMLImageElement>('img[data-fallback]').forEach((img) => {
+    const fallback = img.dataset.fallback;
+    if (!fallback) return;
+    let alreadyBacked = false;
+
+    const swap = () => {
+      if (alreadyBacked) return;
+      alreadyBacked = true;
+      img.src = fallback;
+      img.removeAttribute('data-fallback');
+    };
+
+    img.addEventListener('error', swap, { once: true });
+    img.addEventListener('load', () => {
+      // Le placeholder YouTube quand maxres n'existe pas est ~120x90.
+      // hqdefault est 480x360. Donc < 200px = on a chopé le placeholder.
+      if (img.naturalWidth < 200) swap();
+    }, { once: true });
+  });
+</script>
+
+<style>
+  .meetup-card {
+    background-color: var(--color-background);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .meetup-card:hover,
+  .meetup-card:focus-within {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .meetup-card__link {
+    display: block;
+    color: var(--color-text);
+    text-decoration: none;
+    height: 100%;
+  }
+
+  .meetup-card__link:hover {
+    text-decoration: none;
+  }
+
+  .meetup-card__media {
+    aspect-ratio: 16 / 9;
+    background-color: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .meetup-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+  }
+
+  .meetup-card:hover .meetup-card__media img {
+    transform: scale(1.03);
+  }
+
+  .meetup-card__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      linear-gradient(135deg, var(--color-primary) 0%, var(--color-text) 100%);
+    color: var(--color-on-primary);
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
+    text-align: center;
+    padding: var(--space-4);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .meetup-card__body {
+    padding: var(--space-5);
+  }
+
+  .meetup-card__date {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    margin-bottom: var(--space-2);
+  }
+
+  .meetup-card__title {
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+    line-height: var(--line-height-tight);
+  }
+
+  .meetup-card__summary {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    /* Limite à 3 lignes max pour homogénéiser la hauteur des cartes. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Variante compacte : disposition horizontale (image à gauche, texte à droite). */
+  .meetup-card--compact .meetup-card__link {
+    display: grid;
+    grid-template-columns: minmax(180px, 35%) 1fr;
+    gap: 0;
+  }
+
+  .meetup-card--compact .meetup-card__media {
+    aspect-ratio: 16 / 9;
+  }
+
+  .meetup-card--compact .meetup-card__body {
+    padding: var(--space-4) var(--space-5);
+  }
+
+  @media (max-width: 640px) {
+    .meetup-card--compact .meetup-card__link {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

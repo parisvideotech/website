@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Decap CMS admin — pas la peine de l'indexer.
+Disallow: /admin/
+
+Sitemap: https://parisvideotech.com/sitemap-index.xml

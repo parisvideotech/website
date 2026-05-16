@@ -1,0 +1,236 @@
+---
+import { SITE } from '@/data/site';
+
+interface NavLink {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+
+const navLinks: NavLink[] = [
+  { href: '/meetups-recents/', label: 'Meetups Récents' },
+  { href: '/rejoignez-nous/#equipe', label: 'Équipe' },
+  { href: '/rejoignez-nous/', label: 'Rejoignez-nous !' },
+  { href: '/a-propos/', label: 'À propos' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="header">
+  <div class="header__inner">
+    <a href="/" class="header__logo" aria-label={`${SITE.name} — accueil`}>
+      <img src="/images/logo.png" alt={SITE.name} width="178" height="36" />
+    </a>
+
+    <button
+      id="nav-toggle"
+      class="header__toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="primary-nav"
+      aria-label="Ouvrir le menu"
+    >
+      <span class="header__toggle-bar"></span>
+      <span class="header__toggle-bar"></span>
+      <span class="header__toggle-bar"></span>
+    </button>
+
+    <nav id="primary-nav" class="header__nav" aria-label="Navigation principale">
+      <ul>
+        {
+          navLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                aria-current={currentPath === link.href ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Menu mobile — équivalent vanilla du jQuery du thème WP actuel.
+  const toggle = document.getElementById('nav-toggle');
+  const nav = document.getElementById('primary-nav');
+
+  if (toggle && nav) {
+    toggle.addEventListener('click', () => {
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!isOpen));
+      toggle.setAttribute(
+        'aria-label',
+        isOpen ? 'Ouvrir le menu' : 'Fermer le menu'
+      );
+      nav.classList.toggle('is-open');
+      toggle.classList.toggle('is-active');
+    });
+
+    // Fermer le menu si on clique sur un lien (sur mobile).
+    nav.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        if (window.matchMedia('(max-width: 768px)').matches) {
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.setAttribute('aria-label', 'Ouvrir le menu');
+          nav.classList.remove('is-open');
+          toggle.classList.remove('is-active');
+        }
+      });
+    });
+  }
+
+  // Smooth scroll sur les ancres internes.
+  document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener('click', (e) => {
+      const href = anchor.getAttribute('href');
+      if (!href || href === '#') return;
+
+      const target = document.querySelector(href);
+      if (!target) return;
+
+      e.preventDefault();
+      const offset = 80; // compensation hauteur du header fixe
+      const top = (target as HTMLElement).getBoundingClientRect().top + window.scrollY - offset;
+
+      window.scrollTo({
+        top,
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+      });
+    });
+  });
+</script>
+
+<style>
+  .header {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+  }
+
+  .header__inner {
+    width: var(--content-width);
+    max-width: var(--container-max);
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .header__logo {
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+  }
+
+  .header__logo img {
+    height: 36px;
+    width: auto;
+    /* Logo dispo en couleur sur fond rouge — pas top de contraste,
+       on inverse en blanc avec un filtre pour Phase 1.
+       À remplacer par un SVG dédié monochrome blanc en cours de phase. */
+    filter: brightness(0) invert(1);
+  }
+
+  .header__toggle {
+    display: none; /* visible en mobile */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    color: inherit;
+  }
+
+  .header__toggle-bar {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background-color: currentColor;
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+  }
+
+  .header__toggle.is-active .header__toggle-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .header__toggle.is-active .header__toggle-bar:nth-child(2) {
+    opacity: 0;
+  }
+  .header__toggle.is-active .header__toggle-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .header__nav ul {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+  }
+
+  .header__nav a {
+    font-family: var(--font-display);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-regular);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    color: inherit;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+  }
+
+  .header__nav a:hover,
+  .header__nav a[aria-current='page'] {
+    background-color: rgba(255, 255, 255, 0.15);
+    text-decoration: none;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .header__toggle {
+      display: flex;
+    }
+
+    .header__nav {
+      position: absolute;
+      top: var(--header-height);
+      left: 0;
+      right: 0;
+      background-color: var(--color-primary);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height var(--transition-base);
+    }
+
+    .header__nav.is-open {
+      max-height: 400px;
+    }
+
+    .header__nav ul {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: var(--space-2) 0;
+    }
+
+    .header__nav a {
+      display: block;
+      padding: var(--space-3) var(--space-6);
+      border-radius: 0;
+    }
+  }
+</style>

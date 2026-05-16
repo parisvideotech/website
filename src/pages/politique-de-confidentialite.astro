@@ -1,0 +1,107 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/data/site';
+---
+
+<BaseLayout
+  title="Politique de confidentialité"
+  description="Politique de confidentialité du site Paris Video Tech."
+>
+  <section class="privacy">
+    <div class="container">
+      <h1>Politique de confidentialité</h1>
+
+      <p class="privacy__intro">
+        Dernière mise à jour : <em>[à compléter à la publication]</em>
+      </p>
+
+      <h2>1. Données collectées</h2>
+      <p>
+        Le site <strong>parisvideotech.com</strong> ne collecte <strong>aucune donnée
+        personnelle</strong> de manière automatique.
+      </p>
+      <ul>
+        <li>Aucun cookie analytique (Google Analytics, etc.) n'est utilisé.</li>
+        <li>Aucun cookie publicitaire n'est utilisé.</li>
+        <li>Aucun formulaire de contact ne stocke vos informations sur ce site (les contacts se
+          font par email direct vers <a href={`mailto:${SITE.contact.email}`}>{SITE.contact.email}</a>).</li>
+      </ul>
+
+      <h2>2. Contenus embarqués depuis des services tiers</h2>
+      <p>
+        Certaines pages affichent des vidéos hébergées sur YouTube. Ces vidéos sont chargées
+        uniquement lorsque vous cliquez explicitement pour les visionner, depuis le domaine
+        <strong>youtube-nocookie.com</strong> (mode renforcé de YouTube qui limite les cookies de
+        tracking).
+      </p>
+      <p>
+        Lorsque vous lancez la lecture, YouTube peut déposer des cookies. Pour plus d'informations,
+        consultez la politique de confidentialité de YouTube/Google.
+      </p>
+
+      <h2>3. Liens externes</h2>
+      <p>
+        Le site contient des liens vers d'autres sites (Meetup.com, HelloAsso, LinkedIn, Twitter,
+        sites des sponsors et speakers). L'association Paris Video Tech n'est pas responsable du
+        traitement de vos données sur ces sites tiers.
+      </p>
+
+      <h2>4. Hébergement et logs serveur</h2>
+      <p>
+        Le site est hébergé par Netlify, Inc. (États-Unis). Comme tout hébergeur, Netlify peut
+        conserver des logs techniques (adresse IP, navigateur, page demandée) à des fins de
+        sécurité et de monitoring, pour une durée limitée. Ces logs ne sont pas exploités par
+        l'association Paris Video Tech.
+      </p>
+
+      <h2>5. Vos droits</h2>
+      <p>
+        Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et
+        de portabilité de vos données personnelles. Étant donné que ce site ne collecte aucune
+        donnée personnelle, ces droits ne s'appliquent pas directement ici. Pour toute question,
+        contactez-nous à <a href={`mailto:${SITE.contact.email}`}>{SITE.contact.email}</a>.
+      </p>
+
+      <h2>6. Modifications</h2>
+      <p>
+        La présente politique de confidentialité peut être modifiée à tout moment. La date de
+        dernière mise à jour figure en haut de cette page.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .privacy {
+    padding-block: var(--space-16);
+  }
+
+  .privacy h1 {
+    margin-bottom: var(--space-3);
+  }
+
+  .privacy__intro {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-10);
+  }
+
+  .privacy h2 {
+    margin-top: var(--space-10);
+    margin-bottom: var(--space-3);
+  }
+
+  .privacy p,
+  .privacy ul {
+    max-width: 65ch;
+    margin-bottom: var(--space-4);
+  }
+
+  .privacy ul {
+    list-style: disc;
+    padding-left: var(--space-6);
+  }
+
+  .privacy li {
+    margin-bottom: var(--space-2);
+  }
+</style>

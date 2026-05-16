@@ -1,0 +1,6 @@
+# Redirections complémentaires à netlify.toml.
+# Syntaxe : <source> <destination> <code HTTP>
+# Doc : https://docs.netlify.com/routing/redirects/
+
+# (Redirections principales gérées via netlify.toml pour plus de clarté.)
+# Ce fichier sert de fallback / additions ponctuelles.

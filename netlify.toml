@@ -1,0 +1,142 @@
+# Configuration Netlify — Paris Video Tech
+# Doc : https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# =============================================================================
+# Headers de sécurité — appliqués à toutes les routes.
+# Cibles : note A sur securityheaders.com.
+# =============================================================================
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Force HTTPS, durée 1 an, inclut sous-domaines, eligibilité preload list.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+    # Empêche le sniffing du type MIME.
+    X-Content-Type-Options = "nosniff"
+
+    # Pas d'embed dans une iframe externe.
+    X-Frame-Options = "DENY"
+
+    # Politique referrer raisonnable.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Désactive APIs sensibles non utilisées.
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+
+    # Isolation cross-origin.
+    Cross-Origin-Opener-Policy = "same-origin"
+
+    # Content Security Policy — à ajuster si on ajoute des intégrations externes.
+    # Note : 'unsafe-inline' sur style-src est requis pour les styles scopés Astro.
+    # Decap CMS nécessite 'unsafe-eval' uniquement sur la route /admin (cf. ci-dessous).
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https://i.ytimg.com https://img.youtube.com;
+      font-src 'self';
+      connect-src 'self';
+      frame-src https://www.youtube-nocookie.com https://www.youtube.com;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+      object-src 'none';
+      upgrade-insecure-requests
+    """
+
+# Decap CMS a besoin d'une CSP plus permissive sur /admin/ (eval pour Netlify Identity).
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://identity.netlify.com https://unpkg.com;
+      style-src 'self' 'unsafe-inline' https://unpkg.com;
+      img-src 'self' data: blob: https:;
+      font-src 'self' data:;
+      connect-src 'self' https://identity.netlify.com https://api.netlify.com https://api.github.com https://*.githubusercontent.com;
+      frame-src 'self' https://identity.netlify.com;
+      base-uri 'self';
+      form-action 'self';
+      object-src 'none'
+    """
+
+# Cache long pour les assets immuables (fingerprintés par Astro).
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# =============================================================================
+# Redirections — voir aussi `public/_redirects` pour la syntaxe simplifiée.
+# =============================================================================
+
+# Pages auteurs WP → /meetups-recents/
+[[redirects]]
+  from = "/author/*"
+  to = "/meetups-recents/"
+  status = 301
+  force = true
+
+# Pages tags WP → /meetups-recents/
+[[redirects]]
+  from = "/tag/*"
+  to = "/meetups-recents/"
+  status = 301
+  force = true
+
+# Ancien slug "home" (interne WP) → /
+[[redirects]]
+  from = "/home-page-new/*"
+  to = "/"
+  status = 301
+  force = true
+
+# Page Équipe fusionnée dans /rejoignez-nous/#equipe
+[[redirects]]
+  from = "/equipe"
+  to = "/rejoignez-nous/#equipe"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/equipe/"
+  to = "/rejoignez-nous/#equipe"
+  status = 301
+  force = true
+
+# Flux RSS WordPress → home
+[[redirects]]
+  from = "/feed"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/feed/*"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/comments/feed/*"
+  to = "/"
+  status = 301
+  force = true
+
+# wp-admin et wp-login : on renvoie en 404 (route inexistante = défaut),
+# pas besoin de règle explicite. Si on veut un message custom, on peut
+# rediriger vers /404/ avec status 404 forcé.

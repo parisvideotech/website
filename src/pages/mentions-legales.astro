@@ -1,0 +1,85 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/data/site';
+---
+
+<BaseLayout
+  title="Mentions légales"
+  description="Mentions légales du site Paris Video Tech."
+>
+  <section class="legal">
+    <div class="container">
+      <h1>Mentions légales</h1>
+
+      <p class="legal__placeholder">
+        ⚠️ <strong>Contenu à rédiger en Phase 2.</strong> Template à compléter par le bureau de
+        l'association.
+      </p>
+
+      <h2>Éditeur du site</h2>
+      <p>
+        Association Paris Video Tech<br />
+        Association loi 1901<br />
+        Siège social : <em>[adresse du siège]</em><br />
+        Numéro RNA : <em>[à compléter]</em><br />
+        Numéro SIRET : <em>[à compléter le cas échéant]</em><br />
+        Directeur de la publication : <em>[nom du président]</em>
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Email : <a href={`mailto:${SITE.contact.email}`}>{SITE.contact.email}</a>
+      </p>
+
+      <h2>Hébergement</h2>
+      <p>
+        Le site est hébergé par<br />
+        <strong>Netlify, Inc.</strong><br />
+        2325 3rd Street, Suite 215<br />
+        San Francisco, California 94107<br />
+        États-Unis<br />
+        <a href="https://www.netlify.com/" target="_blank" rel="noopener noreferrer">https://www.netlify.com/</a>
+      </p>
+
+      <h2>Propriété intellectuelle</h2>
+      <p>
+        L'ensemble des contenus présents sur ce site (textes, images, logos, vidéos) sont la
+        propriété de l'association Paris Video Tech ou de leurs auteurs respectifs. Toute
+        reproduction sans autorisation préalable est interdite.
+      </p>
+
+      <h2>Crédits</h2>
+      <p>
+        Charte graphique historique : Charles-Henri Castaing.<br />
+        Refonte technique 2026 : équipe Paris Video Tech.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal {
+    padding-block: var(--space-16);
+  }
+
+  .legal h1 {
+    margin-bottom: var(--space-8);
+  }
+
+  .legal h2 {
+    margin-top: var(--space-10);
+    margin-bottom: var(--space-3);
+  }
+
+  .legal p {
+    max-width: 65ch;
+    margin-bottom: var(--space-4);
+  }
+
+  .legal__placeholder {
+    background-color: var(--color-surface);
+    border-left: 4px solid var(--color-primary);
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+  }
+</style>

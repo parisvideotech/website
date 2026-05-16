@@ -1,0 +1,87 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/Button.astro';
+import { SITE } from '@/data/site';
+---
+
+<BaseLayout
+  title="À propos"
+  description="Paris Video Tech est une communauté d'ingénieurs et développeurs de la technique vidéo en ligne, basée à Paris."
+>
+  <section class="about">
+    <div class="container">
+      <h1>À propos de Paris Video Tech</h1>
+
+      <p class="lead">
+        Paris Video Tech est une communauté d'ingénieurs, développeurs et amateurs de la technique
+        vidéo en ligne.
+      </p>
+
+      <p>
+        Chaque trimestre, nos meetups sont l'occasion de se retrouver autour de tous les sujets
+        techniques dans le workflow vidéo : players HTML5, encoding, transcoding, distribution,
+        analytics, publicité, monétisation, et bien d'autres !
+      </p>
+
+      <h2>Notre format</h2>
+      <p>
+        Nos meetups se tiennent généralement en soirée à Paris, dans les locaux d'un de nos
+        sponsors. La soirée commence par un moment convivial (pizzas, bières) avant 2 à 3
+        présentations courtes (~20–30 min) sur des sujets techniques pointus, le tout suivi d'un
+        temps d'échange avec les speakers et la communauté.
+      </p>
+
+      <h2>Nous soutenir</h2>
+      <p>
+        Paris Video Tech est une association loi 1901 portée par une équipe bénévole. Pour
+        continuer à organiser ces événements et garder l'accès gratuit, nous comptons sur le
+        soutien de nos sponsors et des dons individuels.
+      </p>
+      <p>
+        <Button href={SITE.donations.helloasso} external>Nous soutenir</Button>
+      </p>
+
+      <h2>Nous rejoindre</h2>
+      <p>
+        Vous voulez participer à l'aventure ? Que ce soit pour partager votre carnet d'adresses,
+        animer la communication, gérer la compta ou aider à organiser les événements, votre
+        contribution est la bienvenue.
+      </p>
+      <p>
+        <Button href="/rejoignez-nous/" variant="ghost">Voir comment rejoindre</Button>
+      </p>
+
+      <h2>Nous contacter</h2>
+      <p>
+        Pour toute question, écrivez à
+        <a href={`mailto:${SITE.contact.email}`}>{SITE.contact.email}</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about {
+    padding-block: var(--space-16);
+  }
+
+  .about h1 {
+    margin-bottom: var(--space-6);
+  }
+
+  .about h2 {
+    margin-top: var(--space-12);
+    margin-bottom: var(--space-3);
+  }
+
+  .about p {
+    max-width: 65ch;
+    margin-bottom: var(--space-4);
+  }
+
+  .lead {
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    font-weight: var(--font-weight-medium);
+  }
+</style>

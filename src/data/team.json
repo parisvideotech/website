@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Benoît Leteneur",
+    "role": "Président",
+    "company": "Blabs",
+    "title": "Conseil en Audio, Broadcast & Streaming",
+    "linkedin": "https://www.linkedin.com/in/benoitleteneur/",
+    "photo": "/images/team/benoit.png"
+  },
+  {
+    "name": "Grégoire Vienne",
+    "role": "Trésorier",
+    "company": "Bitmovin",
+    "title": "General Manager",
+    "linkedin": "https://www.linkedin.com/in/gregoire-vienne/",
+    "photo": "/images/team/gregoire.jpeg"
+  },
+  {
+    "name": "Emmanuel Fréard",
+    "role": "Membre actif",
+    "company": "blastream.com",
+    "title": "Co-fondateur",
+    "linkedin": "https://www.linkedin.com/in/emmanuel-fr%C3%A9ard-6816a620/",
+    "photo": "/images/team/emmanuel.jpeg"
+  },
+  {
+    "name": "Gianni Vacca",
+    "role": "Membre actif",
+    "company": "Consort Group",
+    "title": "Project/Programme Manager",
+    "linkedin": "https://www.linkedin.com/in/giannivacca/",
+    "photo": "/images/team/gianni.jpeg"
+  },
+  {
+    "name": "Simon Laroque",
+    "role": "Membre actif",
+    "company": "",
+    "title": "Video/Infrastructure/Architect",
+    "linkedin": "https://www.linkedin.com/in/simon-laroque-ba55934/",
+    "photo": "/images/team/simon.jpeg"
+  },
+  {
+    "name": "Yoann Guennegues",
+    "role": "Membre actif",
+    "company": "France Télévisions",
+    "title": "Lead Video Architect",
+    "linkedin": "https://www.linkedin.com/in/yoann-guennegues-022a1a8/",
+    "photo": "/images/team/yoann.jpeg"
+  },
+  {
+    "name": "Erwan Rouet",
+    "role": "Membre actif",
+    "company": "Akamai",
+    "title": "Major Account Executive",
+    "linkedin": "http://linkedin.com/in/erouet",
+    "photo": "/images/team/erwan.jpeg"
+  }
+]

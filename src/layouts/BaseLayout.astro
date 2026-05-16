@@ -1,0 +1,98 @@
+---
+import '@/styles/fonts.css';
+import '@/styles/tokens.css';
+import '@/styles/global.css';
+
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import { SITE } from '@/data/site';
+
+interface Props {
+  /** Titre de la page (sera concaténé avec le nom du site). */
+  title?: string;
+  /** Description meta. */
+  description?: string;
+  /** URL canonical (par défaut, l'URL courante). */
+  canonical?: string;
+  /** Image Open Graph. */
+  ogImage?: string;
+  /** Type Open Graph (`website` par défaut, `article` pour les meetups). */
+  ogType?: 'website' | 'article';
+  /** Empêcher l'indexation. */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = SITE.description,
+  canonical = new URL(Astro.url.pathname, Astro.site).toString(),
+  ogImage = '/images/og-default.png',
+  ogType = 'website',
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title ? `${SITE.name} | ${title}` : SITE.name;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site).toString()} />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content={SITE.name} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(ogImage, Astro.site).toString()} />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="/favicon-pvt-red.png" />
+    <link rel="apple-touch-icon" href="/favicon-pvt-red.png" />
+
+    <!-- Theme color (mobile address bar) -->
+    <meta name="theme-color" content="#CE031B" />
+
+    <!-- JSON-LD Organization -->
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: SITE.name,
+        url: SITE.url,
+        logo: `${SITE.url}/images/logo.png`,
+        description: SITE.description,
+        sameAs: [SITE.social.linkedin, SITE.social.twitter, SITE.social.meetup],
+      })}
+    />
+
+    <!-- Slot pour injection de tags supplémentaires (JSON-LD spécifique, etc.). -->
+    <slot name="head" />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+
+    <Header />
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

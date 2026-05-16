@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Consort NT",
+    "url": "https://consort-group.com/",
+    "logo": "/images/sponsors/consort-nt.jpg"
+  },
+  {
+    "name": "Akamai",
+    "url": "https://www.akamai.com/fr",
+    "logo": "/images/sponsors/akamai.png"
+  },
+  {
+    "name": "Bitmovin",
+    "url": "https://bitmovin.com/",
+    "logo": "/images/sponsors/bitmovin.png"
+  },
+  {
+    "name": "Blastream",
+    "url": "https://www.blastream.com/fr/",
+    "logo": "/images/sponsors/blastream.png"
+  },
+  {
+    "name": "Broadpeak",
+    "url": "https://broadpeak.tv/",
+    "logo": "/images/sponsors/broadpeak.png"
+  },
+  {
+    "name": "Le Wagon",
+    "url": "https://www.lewagon.com/fr",
+    "logo": "/images/sponsors/lewagon.png"
+  },
+  {
+    "name": "Lumen",
+    "url": "https://www.lumen.com/en-us/home.html",
+    "logo": "/images/sponsors/lumen.png"
+  },
+  {
+    "name": "Unified Streaming",
+    "url": "https://www.unified-streaming.com/",
+    "logo": "/images/sponsors/unified.png"
+  }
+]

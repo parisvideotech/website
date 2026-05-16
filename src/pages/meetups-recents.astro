@@ -1,0 +1,134 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const meetups = (
+  await getCollection('meetups', ({ data }) => !data.draft && data.status !== 'draft')
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout
+  title="Meetups Récents"
+  description="L'ensemble des meetups Paris Video Tech, du plus récent au plus ancien."
+>
+  <section class="meetups">
+    <div class="container">
+      <h1>Nos meetups récents</h1>
+      <p class="meetups__intro">
+        Tous les meetups organisés par Paris Video Tech, du plus récent au plus ancien.
+      </p>
+
+      {
+        meetups.length === 0 ? (
+          <p class="meetups__empty">
+            La liste sera disponible une fois la migration depuis WordPress effectuée (Phase 2).
+          </p>
+        ) : (
+          <ul class="meetups__list">
+            {meetups.map((meetup) => (
+              <li class="meetup">
+                <a href={`/${meetup.slug}/`} class="meetup__link">
+                  <h2 class="meetup__title">{meetup.data.title}</h2>
+                  <p class="meetup__date">
+                    {meetup.data.date.toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                    {meetup.data.location ? ` — ${meetup.data.location}` : ''}
+                  </p>
+                  <p class="meetup__summary">{meetup.data.summary}</p>
+                  {meetup.data.tags.length > 0 && (
+                    <ul class="meetup__tags">
+                      {meetup.data.tags.map((tag) => (
+                        <li>{tag}</li>
+                      ))}
+                    </ul>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .meetups {
+    padding-block: var(--space-16);
+  }
+
+  .meetups h1 {
+    margin-bottom: var(--space-3);
+  }
+
+  .meetups__intro {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-12);
+    max-width: 65ch;
+  }
+
+  .meetups__empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .meetups__list {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .meetup {
+    border-left: 4px solid var(--color-primary);
+    padding-left: var(--space-6);
+    transition: padding-left var(--transition-fast);
+  }
+
+  .meetup:hover {
+    padding-left: var(--space-8);
+  }
+
+  .meetup__link {
+    display: block;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .meetup__link:hover {
+    text-decoration: none;
+  }
+
+  .meetup__title {
+    font-size: var(--font-size-2xl);
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+  }
+
+  .meetup__date {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+  }
+
+  .meetup__summary {
+    margin-bottom: var(--space-3);
+  }
+
+  .meetup__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .meetup__tags li {
+    background-color: var(--color-surface);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+</style>

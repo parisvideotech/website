@@ -1,0 +1,127 @@
+# =============================================================================
+# Decap CMS — Configuration
+# Doc : https://decapcms.org/docs/configuration-options/
+# =============================================================================
+
+# Backend Git via Netlify Identity (à activer dans le dashboard Netlify).
+backend:
+  name: git-gateway
+  branch: main
+
+# Workflow éditorial : "simple" = commit direct sur main.
+# Si on veut faire passer chaque édition par une PR : `publish_mode: editorial_workflow`
+publish_mode: editorial_workflow
+
+# Lieu où Decap stocke les médias uploadés via l'interface.
+media_folder: 'public/images/meetups'
+public_folder: '/images/meetups'
+
+site_url: https://parisvideotech.com
+display_url: https://parisvideotech.com
+logo_url: https://parisvideotech.com/images/logo.png
+
+# Langue de l'interface.
+locale: 'fr'
+
+# =============================================================================
+# Collections
+# =============================================================================
+
+collections:
+  - name: 'meetups'
+    label: 'Meetups'
+    label_singular: 'Meetup'
+    folder: 'src/content/meetups'
+    create: true
+    delete: true
+    slug: '{{slug}}'
+    extension: 'mdx'
+    format: 'frontmatter'
+    summary: '{{title}} — {{date | date("DD/MM/YYYY")}}'
+    sortable_fields: ['date', 'title']
+    view_filters:
+      - label: 'À venir'
+        field: status
+        pattern: 'upcoming'
+      - label: 'Passés'
+        field: status
+        pattern: 'past'
+    fields:
+      - label: 'Titre'
+        name: 'title'
+        widget: 'string'
+        hint: 'Ex : Paris Video Tech #32 feat. Les Echos'
+
+      - label: 'Date'
+        name: 'date'
+        widget: 'datetime'
+        date_format: 'DD/MM/YYYY'
+        time_format: 'HH:mm'
+        format: 'YYYY-MM-DDTHH:mm:ssZ'
+
+      - label: 'Statut'
+        name: 'status'
+        widget: 'select'
+        options:
+          - { label: 'À venir (affiché en hero sur la home)', value: 'upcoming' }
+          - { label: 'Passé', value: 'past' }
+          - { label: 'Brouillon (non publié)', value: 'draft' }
+        default: 'past'
+
+      - label: 'Lieu'
+        name: 'location'
+        widget: 'string'
+        required: false
+        hint: 'Ex : Le Wagon, 16 Villa Gaudelet, Paris 11e'
+
+      - label: 'Résumé'
+        name: 'summary'
+        widget: 'text'
+        pattern: ['^.{10,280}$', 'Entre 10 et 280 caractères']
+        hint: 'Phrase d''accroche affichée dans les listings.'
+
+      - label: 'Image de couverture'
+        name: 'cover'
+        widget: 'image'
+        required: false
+        choose_url: false
+        media_library:
+          config:
+            multiple: false
+
+      - label: 'Texte alternatif de l''image'
+        name: 'cover_alt'
+        widget: 'string'
+        required: false
+        hint: 'Pour l''accessibilité.'
+
+      - label: 'Intervenants'
+        name: 'speakers'
+        widget: 'list'
+        required: false
+        summary: '{{fields.name}} ({{fields.company}})'
+        fields:
+          - { label: 'Nom', name: 'name', widget: 'string' }
+          - { label: 'Rôle', name: 'role', widget: 'string', required: false }
+          - { label: 'Société', name: 'company', widget: 'string', required: false }
+          - { label: 'Titre du talk', name: 'talk_title', widget: 'string', required: false }
+          - { label: 'LinkedIn', name: 'linkedin', widget: 'string', required: false, pattern: ['^https://', 'URL complète (https://...)'] }
+
+      - label: 'Lien YouTube du replay'
+        name: 'youtube_url'
+        widget: 'string'
+        required: false
+        pattern: ['^https://(www\.)?youtu', 'URL YouTube valide']
+        hint: 'URL complète du replay (youtu.be/... ou youtube.com/watch?v=...)'
+
+      - label: 'Tags'
+        name: 'tags'
+        widget: 'list'
+        required: false
+        default: []
+        hint: 'Ex : HLS, ABR, IA, JO, encoding'
+
+      - label: 'Contenu'
+        name: 'body'
+        widget: 'markdown'
+        hint: 'Description complète du meetup.'
