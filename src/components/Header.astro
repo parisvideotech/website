@@ -55,36 +55,63 @@ const currentPath = Astro.url.pathname;
 </header>
 
 <script>
-  // Menu mobile — équivalent vanilla du jQuery du thème WP actuel.
-  const toggle = document.getElementById('nav-toggle');
-  const nav = document.getElementById('primary-nav');
+  // Menu mobile — implémentation robuste :
+  //   - State unique géré par classe `is-open` sur le <nav>
+  //   - Fermeture auto sur navigation (clic sur lien)
+  //   - Fermeture auto au resize vers desktop (évite menu coincé ouvert)
+  //   - Fermeture auto au clic en dehors
+  //   - Fermeture auto sur Escape
+  //   - Synchronisation `aria-expanded` et `aria-label` à chaque changement
+
+  const toggle = document.getElementById('nav-toggle') as HTMLButtonElement | null;
+  const nav = document.getElementById('primary-nav') as HTMLElement | null;
 
   if (toggle && nav) {
-    toggle.addEventListener('click', () => {
-      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!isOpen));
-      toggle.setAttribute(
-        'aria-label',
-        isOpen ? 'Ouvrir le menu' : 'Fermer le menu'
-      );
-      nav.classList.toggle('is-open');
-      toggle.classList.toggle('is-active');
+    const MOBILE_MQ = window.matchMedia('(max-width: 768px)');
+
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+      nav.classList.toggle('is-open', open);
+      toggle.classList.toggle('is-active', open);
+      document.body.classList.toggle('has-mobile-menu-open', open);
+    };
+
+    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+
+    // Toggle au clic sur le burger
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setOpen(!isOpen());
     });
 
-    // Fermer le menu si on clique sur un lien (sur mobile).
+    // Fermer si on clique sur un lien de la nav
     nav.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        if (window.matchMedia('(max-width: 768px)').matches) {
-          toggle.setAttribute('aria-expanded', 'false');
-          toggle.setAttribute('aria-label', 'Ouvrir le menu');
-          nav.classList.remove('is-open');
-          toggle.classList.remove('is-active');
-        }
-      });
+      link.addEventListener('click', () => setOpen(false));
     });
+
+    // Fermer si on clique en dehors du menu (overlay)
+    document.addEventListener('click', (e) => {
+      if (!isOpen()) return;
+      const target = e.target as Node;
+      if (!nav.contains(target) && !toggle.contains(target)) {
+        setOpen(false);
+      }
+    });
+
+    // Fermer avec Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) setOpen(false);
+    });
+
+    // Au resize vers desktop, fermer le menu pour éviter un état hybride
+    const handleViewportChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (!e.matches && isOpen()) setOpen(false);
+    };
+    MOBILE_MQ.addEventListener('change', handleViewportChange);
   }
 
-  // Smooth scroll sur les ancres internes.
+  // Smooth scroll sur les ancres internes
   document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener('click', (e) => {
       const href = anchor.getAttribute('href');
@@ -204,19 +231,31 @@ const currentPath = Astro.url.pathname;
       display: flex;
     }
 
+    /* Le menu mobile est un panneau qui glisse depuis le haut. Il est en
+       `position: fixed` (et non `absolute`) pour ne pas dépendre du
+       containing block du header sticky, qui est buggé sur certains
+       navigateurs (Safari + Chrome quand on resize). */
     .header__nav {
-      position: absolute;
+      position: fixed;
       top: var(--header-height);
       left: 0;
       right: 0;
+      max-height: calc(100dvh - var(--header-height));
+      overflow-y: auto;
       background-color: var(--color-primary);
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height var(--transition-base);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      transform: translateY(-100%);
+      opacity: 0;
+      visibility: hidden;
+      transition: transform 250ms ease, opacity 200ms ease, visibility 0s linear 250ms;
+      z-index: var(--z-header);
     }
 
     .header__nav.is-open {
-      max-height: 400px;
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+      transition: transform 250ms ease, opacity 200ms ease, visibility 0s;
     }
 
     .header__nav ul {
@@ -228,8 +267,26 @@ const currentPath = Astro.url.pathname;
 
     .header__nav a {
       display: block;
-      padding: var(--space-3) var(--space-6);
+      padding: var(--space-4) var(--space-6);
       border-radius: 0;
+      font-size: var(--font-size-base);
+    }
+
+    .header__nav a:hover,
+    .header__nav a[aria-current='page'] {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+  }
+
+  /* Empêche le scroll du body quand le menu mobile est ouvert (UX standard). */
+  :global(body.has-mobile-menu-open) {
+    overflow: hidden;
+  }
+
+  @media (min-width: 769px) {
+    /* Sur desktop, le scroll-lock ne s'applique pas (le menu n'est pas en overlay). */
+    :global(body.has-mobile-menu-open) {
+      overflow: auto;
     }
   }
 </style>
