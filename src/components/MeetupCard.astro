@@ -55,7 +55,12 @@ const formattedDate = meetup.data.date.toLocaleDateString('fr-FR', {
 const href = `/${meetup.slug}/`;
 ---
 
-<article class:list={['meetup-card', `meetup-card--${variant}`]}>
+<article
+  class:list={['meetup-card', `meetup-card--${variant}`]}
+  data-tags={meetup.data.tags.join(',')}
+  data-year={meetup.data.date.getFullYear()}
+  data-reveal
+>
   <a href={href} class="meetup-card__link">
     <div class="meetup-card__media">
       {imageSrc ? (
@@ -77,6 +82,13 @@ const href = `/${meetup.slug}/`;
       <p class="meetup-card__date">{formattedDate}</p>
       <h3 class="meetup-card__title">{meetup.data.title}</h3>
       <p class="meetup-card__summary">{meetup.data.summary}</p>
+      {
+        meetup.data.tags.length > 0 && (
+          <ul class="meetup-card__tags" aria-label="Tags">
+            {meetup.data.tags.slice(0, 3).map((t) => <li>{t}</li>)}
+          </ul>
+        )
+      }
     </div>
   </a>
 </article>
@@ -205,6 +217,22 @@ const href = `/${meetup.slug}/`;
     line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin-bottom: var(--space-3);
+  }
+
+  .meetup-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .meetup-card__tags li {
+    background-color: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    line-height: 1.3;
   }
 
   /* Variante compacte : disposition horizontale (image à gauche, texte à droite). */

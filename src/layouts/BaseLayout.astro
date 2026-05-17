@@ -84,7 +84,7 @@ const pageTitle = title ? `${SITE.name} | ${title}` : SITE.name;
     <!-- Slot pour injection de tags supplémentaires (JSON-LD spécifique, etc.). -->
     <slot name="head" />
   </head>
-  <body>
+  <body class="no-js">
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
 
     <Header />
@@ -94,5 +94,32 @@ const pageTitle = title ? `${SITE.name} | ${title}` : SITE.name;
     </main>
 
     <Footer />
+
+    <script>
+      // Activation des animations reveal : IntersectionObserver ajoute `is-revealed`
+      // sur chaque élément avec `data-reveal` quand il entre dans le viewport.
+      document.body.classList.remove('no-js');
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-revealed');
+                observer.unobserve(entry.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -10% 0px', threshold: 0.05 }
+        );
+
+        document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
+      } else {
+        // Vieux navigateurs : on révèle tout d'un coup.
+        document.querySelectorAll('[data-reveal]').forEach((el) =>
+          el.classList.add('is-revealed')
+        );
+      }
+    </script>
   </body>
 </html>

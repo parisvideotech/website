@@ -9,14 +9,25 @@ import { getCollection, type CollectionEntry } from 'astro:content';
  */
 export async function getStaticPaths() {
   const meetups = await getCollection('meetups', ({ data }) => !data.draft && data.status !== 'draft');
-  return meetups.map((meetup) => ({
+  // Trié anti-chronologiquement : le plus récent en premier.
+  const sorted = meetups.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return sorted.map((meetup, idx) => ({
     params: { slug: meetup.slug },
-    props: { meetup },
+    props: {
+      meetup,
+      // `prev` = meetup plus récent (idx - 1 dans tri desc) ; `next` = plus ancien (idx + 1).
+      prev: idx > 0 ? sorted[idx - 1] : null,
+      next: idx < sorted.length - 1 ? sorted[idx + 1] : null,
+    },
   }));
 }
 
-type Props = { meetup: CollectionEntry<'meetups'> };
-const { meetup } = Astro.props;
+type Props = {
+  meetup: CollectionEntry<'meetups'>;
+  prev: CollectionEntry<'meetups'> | null;
+  next: CollectionEntry<'meetups'> | null;
+};
+const { meetup, prev, next } = Astro.props;
 const { Content } = await meetup.render();
 
 const formattedDate = meetup.data.date.toLocaleDateString('fr-FR', {
@@ -65,6 +76,13 @@ const jsonLd = {
         </p>
         <h1>{meetup.data.title}</h1>
         <p class="meetup-article__summary">{meetup.data.summary}</p>
+        {
+          meetup.data.tags.length > 0 && (
+            <ul class="meetup-article__tags" aria-label="Tags du meetup">
+              {meetup.data.tags.map((tag) => <li>{tag}</li>)}
+            </ul>
+          )
+        }
       </div>
     </header>
 
@@ -115,17 +133,28 @@ const jsonLd = {
         )
       }
 
-      {
-        meetup.data.tags.length > 0 && (
-          <footer class="tags">
-            <ul>
-              {meetup.data.tags.map((tag) => (
-                <li>{tag}</li>
-              ))}
-            </ul>
-          </footer>
-        )
-      }
+      <nav class="meetup-nav" aria-label="Navigation entre meetups">
+        {
+          next ? (
+            <a href={`/${next.slug}/`} class="meetup-nav__item meetup-nav__item--prev">
+              <span class="meetup-nav__label">← Meetup précédent</span>
+              <span class="meetup-nav__title">{next.data.title}</span>
+            </a>
+          ) : (
+            <span class="meetup-nav__placeholder" />
+          )
+        }
+        {
+          prev ? (
+            <a href={`/${prev.slug}/`} class="meetup-nav__item meetup-nav__item--next">
+              <span class="meetup-nav__label">Meetup suivant →</span>
+              <span class="meetup-nav__title">{prev.data.title}</span>
+            </a>
+          ) : (
+            <span class="meetup-nav__placeholder" />
+          )
+        }
+      </nav>
     </div>
   </article>
 </BaseLayout>
@@ -150,6 +179,24 @@ const jsonLd = {
     color: var(--color-text-muted);
     max-width: 65ch;
     margin-top: var(--space-4);
+  }
+
+  .meetup-article__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+  }
+
+  .meetup-article__tags li {
+    background-color: var(--color-surface);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    border: 1px solid var(--color-border);
   }
 
   .meetup-article__body {
@@ -207,25 +254,62 @@ const jsonLd = {
     margin-top: var(--space-2);
   }
 
-  .tags {
-    margin-top: var(--space-12);
-    padding-top: var(--space-6);
+  .meetup-nav {
+    margin-top: var(--space-16);
+    padding-top: var(--space-8);
     border-top: 1px solid var(--color-border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
   }
 
-  .tags ul {
+  .meetup-nav__item {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: var(--space-2);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+    background-color: var(--color-surface);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .tags li {
-    background-color: var(--color-surface);
-    color: var(--color-text-muted);
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-pill);
+  .meetup-nav__item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+
+  .meetup-nav__item--next {
+    text-align: right;
+  }
+
+  .meetup-nav__label {
     font-size: var(--font-size-xs);
     text-transform: uppercase;
     letter-spacing: var(--letter-spacing-wide);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-bold);
   }
+
+  .meetup-nav__title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .meetup-nav__placeholder {
+    /* Cellule vide pour préserver la grille 2 colonnes quand prev ou next manque. */
+  }
+
+  @media (max-width: 640px) {
+    .meetup-nav {
+      grid-template-columns: 1fr;
+    }
+
+    .meetup-nav__item--next {
+      text-align: left;
+    }
+  }
+
 </style>

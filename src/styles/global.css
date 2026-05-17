@@ -32,7 +32,7 @@ html {
 body {
   font-family: var(--font-body);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-regular);
   line-height: var(--line-height-normal);
   color: var(--color-text);
   background-color: var(--color-background);
@@ -152,4 +152,33 @@ p {
   clip: rect(0, 0, 0, 0) !important;
   white-space: nowrap !important;
   border: 0 !important;
+}
+
+/* Reveal au scroll : fade-in + petite translation des éléments marqués `data-reveal`.
+   Géré côté JS via IntersectionObserver pour ajouter la classe `is-revealed`.
+   Respecte prefers-reduced-motion (les éléments restent visibles, juste sans animation). */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+[data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Avant que le JS ne tourne (ou si JS désactivé), on doit afficher quand même.
+   Le JS retire cette classe au boot pour activer l'animation. */
+.no-js [data-reveal] {
+  opacity: 1;
+  transform: none;
 }

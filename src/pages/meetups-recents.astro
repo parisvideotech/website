@@ -1,11 +1,30 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import MeetupCard from '@/components/MeetupCard.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 
 const meetups = (
-  await getCollection('meetups', ({ data }) => !data.draft && data.status !== 'draft')
+  await getCollection('meetups', ({ data }) => !data.draft && data.status === 'past')
 ).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Groupement par année (tri descendant — l'année la plus récente en premier).
+const byYear = new Map<number, CollectionEntry<'meetups'>[]>();
+for (const m of meetups) {
+  const y = m.data.date.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(m);
+}
+const years = [...byYear.keys()].sort((a, b) => b - a);
+
+// Tags uniques, triés par fréquence (les plus utilisés en premier).
+const tagCount = new Map<string, number>();
+for (const m of meetups) {
+  for (const t of m.data.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+}
+const topTags = [...tagCount.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 15)
+  .map(([t]) => t);
 ---
 
 <BaseLayout
@@ -16,7 +35,8 @@ const meetups = (
     <div class="container">
       <h1>Nos meetups récents</h1>
       <p class="meetups__intro">
-        Tous les meetups organisés par Paris Video Tech, du plus récent au plus ancien.
+        {meetups.length} meetups organisés depuis {years[years.length - 1]}. Filtrez par
+        thématique ou naviguez par année.
       </p>
 
       {
@@ -25,14 +45,94 @@ const meetups = (
             La liste sera disponible une fois la migration depuis WordPress effectuée.
           </p>
         ) : (
-          <div class="meetups__grid">
-            {meetups.map((meetup) => <MeetupCard meetup={meetup} />)}
-          </div>
+          <>
+            <div class="meetups__filters" role="region" aria-label="Filtrer par tag">
+              <button class="filter-btn is-active" type="button" data-filter="all">
+                Tous
+              </button>
+              {topTags.map((tag) => (
+                <button class="filter-btn" type="button" data-filter={tag}>
+                  {tag}
+                </button>
+              ))}
+            </div>
+
+            <nav class="meetups__toc" aria-label="Sommaire par année">
+              <span class="meetups__toc-label">Aller à :</span>
+              {years.map((y) => (
+                <a href={`#year-${y}`} data-year-link={y}>{y}</a>
+              ))}
+            </nav>
+
+            <div class="meetups__list">
+              {years.map((y) => (
+                <section class="year-section" data-year-section={y}>
+                  <h2 class="year-section__heading" id={`year-${y}`}>
+                    {y}
+                    <span class="year-section__count">{byYear.get(y)!.length}</span>
+                  </h2>
+                  <div class="meetups__grid">
+                    {byYear.get(y)!.map((meetup) => (
+                      <MeetupCard meetup={meetup} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+
+            <p class="meetups__empty-results" hidden>
+              Aucun meetup ne correspond à ce filtre. <button type="button" data-reset>Réinitialiser →</button>
+            </p>
+          </>
         )
       }
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+  const cards = document.querySelectorAll<HTMLElement>('.meetup-card');
+  const sections = document.querySelectorAll<HTMLElement>('[data-year-section]');
+  const tocLinks = document.querySelectorAll<HTMLElement>('[data-year-link]');
+  const emptyMsg = document.querySelector<HTMLElement>('.meetups__empty-results');
+
+  function applyFilter(tag: string) {
+    cards.forEach((card) => {
+      const tags = (card.dataset.tags ?? '').split(',').filter(Boolean);
+      const match = tag === 'all' || tags.includes(tag);
+      card.hidden = !match;
+    });
+
+    // Cacher les années sans cartes visibles + masquer leur lien dans le sommaire.
+    let totalVisible = 0;
+    sections.forEach((section) => {
+      const visible = section.querySelectorAll('.meetup-card:not([hidden])').length;
+      section.hidden = visible === 0;
+      totalVisible += visible;
+      const y = section.dataset.yearSection;
+      const link = document.querySelector<HTMLElement>(`[data-year-link="${y}"]`);
+      if (link) link.hidden = visible === 0;
+    });
+
+    // Message si aucun résultat
+    if (emptyMsg) emptyMsg.hidden = totalVisible > 0;
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      applyFilter(btn.dataset.filter ?? 'all');
+    });
+  });
+
+  // Bouton "Réinitialiser" du message vide.
+  document.querySelector<HTMLButtonElement>('[data-reset]')?.addEventListener('click', () => {
+    const allBtn = document.querySelector<HTMLButtonElement>('.filter-btn[data-filter="all"]');
+    allBtn?.click();
+  });
+</script>
 
 <style>
   .meetups {
@@ -45,7 +145,7 @@ const meetups = (
 
   .meetups__intro {
     color: var(--color-text-muted);
-    margin-bottom: var(--space-12);
+    margin-bottom: var(--space-10);
     max-width: 65ch;
   }
 
@@ -54,9 +154,116 @@ const meetups = (
     font-style: italic;
   }
 
+  /* Filtres tags */
+  .meetups__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .filter-btn {
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .filter-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .filter-btn.is-active {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    border-color: var(--color-primary);
+  }
+
+  /* Sommaire par année */
+  .meetups__toc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-12);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .meetups__toc-label {
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .meetups__toc a {
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface);
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+  }
+
+  .meetups__toc a:hover {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  /* Sections par année */
+  .year-section {
+    margin-bottom: var(--space-16);
+  }
+
+  .year-section__heading {
+    font-size: var(--font-size-2xl);
+    color: var(--color-primary);
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--color-primary);
+    margin-bottom: var(--space-6);
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .year-section__count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-regular);
+    font-family: var(--font-body);
+  }
+
   .meetups__grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--space-6);
+  }
+
+  .meetups__empty-results {
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: var(--space-12);
+    font-style: italic;
+  }
+
+  .meetups__empty-results button {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    text-decoration: underline;
   }
 </style>

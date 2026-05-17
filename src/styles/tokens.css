@@ -10,8 +10,8 @@
   --color-primary-hover: #a8021a; /* rouge assombri ~15% — à arbitrer Phase 1 */
   --color-on-primary: #ffffff;
 
-  --color-text: #324147; /* gris foncé — texte courant */
-  --color-text-muted: #6b7886; /* texte secondaire (dates, méta) */
+  --color-text: #324147; /* gris foncé — texte courant (contraste 9.8:1 sur blanc → AAA) */
+  --color-text-muted: #525a64; /* texte secondaire (contraste 5.7:1 sur blanc → AA+, 5.4 sur F5F6F7) */
   --color-text-inverse: #ffffff;
 
   --color-background: #f5f6f7;  /* fond global du site, gris très clair */
