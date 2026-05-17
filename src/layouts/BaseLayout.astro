@@ -81,8 +81,17 @@ const pageTitle = title ? `${SITE.name} | ${title}` : SITE.name;
       })}
     />
 
-    <!-- Slot pour injection de tags supplémentaires (JSON-LD spécifique, etc.). -->
+    <!-- Slot pour injection de tags supplementaires (JSON-LD specifique, etc.). -->
     <slot name="head" />
+
+    <!--
+      Netlify Identity Widget : chargé sur toutes les pages pour intercepter
+      les emails d'invitation, de réinitialisation, et de confirmation. Sans ça,
+      un utilisateur invité qui clique sur le lien d'email atterrirait à la
+      racine sans pouvoir finaliser son inscription.
+      Le script est ~3 KB compressé et chargé en defer (non bloquant).
+    -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js" defer></script>
   </head>
   <body class="no-js">
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
@@ -96,8 +105,7 @@ const pageTitle = title ? `${SITE.name} | ${title}` : SITE.name;
     <Footer />
 
     <script>
-      // Activation des animations reveal : IntersectionObserver ajoute `is-revealed`
-      // sur chaque élément avec `data-reveal` quand il entre dans le viewport.
+      // Active les reveal au scroll (cf. global.css [data-reveal])
       document.body.classList.remove('no-js');
 
       if ('IntersectionObserver' in window) {
@@ -115,10 +123,29 @@ const pageTitle = title ? `${SITE.name} | ${title}` : SITE.name;
 
         document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
       } else {
-        // Vieux navigateurs : on révèle tout d'un coup.
         document.querySelectorAll('[data-reveal]').forEach((el) =>
           el.classList.add('is-revealed')
         );
+      }
+    </script>
+
+    <script>
+      // Netlify Identity : redirige vers /admin/ après login depuis n'importe quelle page,
+      // et après acceptation d'invitation (le widget intercepte le hash automatiquement).
+      // L'objet est posé par le widget defer-loaded dans <head>.
+      type Identity = {
+        on: (event: string, cb: (...args: unknown[]) => void) => void;
+      };
+
+      const ni = (window as unknown as { netlifyIdentity?: Identity }).netlifyIdentity;
+      if (ni) {
+        ni.on('init', (user) => {
+          if (!user) {
+            ni.on('login', () => {
+              document.location.href = '/admin/';
+            });
+          }
+        });
       }
     </script>
   </body>
