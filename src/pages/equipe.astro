@@ -1,26 +1,161 @@
 ---
-// Cette ancienne page redirige désormais vers la section équipe de /rejoignez-nous/.
-// Conservée pour ne pas casser d'éventuels liens externes.
-// Tu peux supprimer ce fichier librement — la redirection Netlify (cf. netlify.toml)
-// prend déjà en charge /equipe/ → /rejoignez-nous/#equipe.
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/Button.astro';
+import { SITE } from '@/data/site';
+import team from '@/data/team.json';
 ---
 
-<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="refresh" content="0; url=/rejoignez-nous/#equipe" />
-    <link rel="canonical" href="/rejoignez-nous/" />
-    <meta name="robots" content="noindex" />
-    <title>Redirection en cours…</title>
-  </head>
-  <body>
-    <p>
-      Cette page a été déplacée.
-      <a href="/rejoignez-nous/#equipe">Voir l'équipe sur la page Rejoignez-nous →</a>
-    </p>
-    <script>
-      window.location.replace('/rejoignez-nous/#equipe');
-    </script>
-  </body>
-</html>
+<BaseLayout
+  title="Équipe"
+  description="Paris Video Tech est une association portée par une équipe bénévole. Découvrez les membres du bureau et comment nous rejoindre."
+>
+  <section class="team">
+    <div class="container">
+      <h1>Notre équipe</h1>
+      <p class="team__intro">
+        Paris Video Tech est une association portée par une équipe bénévole. Voici les membres du
+        bureau qui font vivre la communauté et organisent les meetups trimestriels.
+      </p>
+
+      <ul class="team__grid" id="equipe">
+        {
+          team.map((member) => (
+            <li class="member">
+              <a href={member.linkedin} target="_blank" rel="noopener noreferrer" class="member__link">
+                <img
+                  src={member.photo}
+                  alt={`Photo de ${member.name}`}
+                  width="150"
+                  height="150"
+                  loading="lazy"
+                  class="member__photo"
+                />
+                <p class="member__role">{member.role}</p>
+                <p class="member__name">{member.name}</p>
+                {member.title && <p class="member__title">{member.title}</p>}
+                {member.company && <p class="member__company">{member.company}</p>}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="join" id="rejoindre">
+        <h2>Vous aimez Paris Video Tech ? Aidez-nous en donnant un peu de votre temps !</h2>
+
+        <h3>Les avantages</h3>
+        <ul>
+          <li>Élargir son réseau en rencontrant les professionnels de la vidéo</li>
+          <li>Intégrer le réseau mondial des "video tech"</li>
+          <li>Participation à des événements et salons de l'audiovisuel en France et en Europe</li>
+          <li>Enrichir ses connaissances et son savoir-faire au travers de l'organisation de meetups</li>
+        </ul>
+
+        <h3>Pour quoi faire ?</h3>
+        <ul>
+          <li>Partager votre carnet d'adresses pour trouver des talks et des sponsors</li>
+          <li>Communication sur les réseaux sociaux</li>
+          <li>Comptabilité</li>
+          <li>Coordination pour l'organisation des événements</li>
+          <li>…</li>
+        </ul>
+
+        <p>
+          Si cela vous intéresse ou si vous avez des questions, contactez-nous à
+          <a href={`mailto:${SITE.contact.email}`}>{SITE.contact.email}</a> !
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .team {
+    padding-block: var(--space-16);
+  }
+
+  .team h1 {
+    margin-bottom: var(--space-3);
+  }
+
+  .team__intro {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-12);
+    max-width: 65ch;
+  }
+
+  .team__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-8);
+    margin-bottom: var(--space-16);
+  }
+
+  .member__link {
+    display: block;
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  .member__link:hover {
+    text-decoration: none;
+  }
+
+  .member__photo {
+    width: 150px;
+    height: 150px;
+    border-radius: var(--radius-pill);
+    object-fit: cover;
+    margin-bottom: var(--space-3);
+    margin-inline: auto;
+    background-color: var(--color-surface);
+  }
+
+  .member__role {
+    font-style: italic;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-1);
+  }
+
+  .member__name {
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin-bottom: var(--space-1);
+  }
+
+  .member__title,
+  .member__company {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .join {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-12);
+    max-width: 720px;
+  }
+
+  .join h2 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-6);
+  }
+
+  .join h3 {
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-3);
+  }
+
+  .join ul {
+    list-style: disc;
+    padding-left: var(--space-6);
+    margin-bottom: var(--space-4);
+  }
+
+  .join li {
+    margin-bottom: var(--space-2);
+  }
+</style>

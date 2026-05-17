@@ -14,8 +14,9 @@
   --color-text-muted: #6b7886; /* texte secondaire (dates, méta) */
   --color-text-inverse: #ffffff;
 
-  --color-background: #ffffff;
-  --color-surface: #f8f9fa; /* fond des cartes / sections claires */
+  --color-background: #f5f6f7;  /* fond global du site, gris très clair */
+  --color-surface: #ffffff;     /* fond des cartes (contraste avec le background) */
+  --color-surface-alt: #fafbfc; /* surface alternative pour les sections en bandes */
   --color-border: #e5e7eb;
   --color-border-strong: #324147;
 

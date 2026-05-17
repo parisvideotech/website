@@ -85,6 +85,10 @@ const href = `/${meetup.slug}/`;
   // Fallback automatique : si la miniature maxresdefault charge mais correspond
   // au placeholder 120x90 de YouTube (HD non disponible pour les vidéos anciennes),
   // on bascule sur hqdefault. Le `error` couvre aussi les vrais 404.
+  //
+  // Important : si l'image est déjà chargée depuis le cache au moment où le script
+  // s'execute, l'evenement `load` ne se redeclenche pas. On vérifie donc img.complete
+  // immédiatement pour ces cas-là.
   document.querySelectorAll<HTMLImageElement>('img[data-fallback]').forEach((img) => {
     const fallback = img.dataset.fallback;
     if (!fallback) return;
@@ -97,12 +101,19 @@ const href = `/${meetup.slug}/`;
       img.removeAttribute('data-fallback');
     };
 
-    img.addEventListener('error', swap, { once: true });
-    img.addEventListener('load', () => {
+    const check = () => {
       // Le placeholder YouTube quand maxres n'existe pas est ~120x90.
       // hqdefault est 480x360. Donc < 200px = on a chopé le placeholder.
-      if (img.naturalWidth < 200) swap();
-    }, { once: true });
+      if (img.naturalWidth > 0 && img.naturalWidth < 200) swap();
+    };
+
+    if (img.complete) {
+      // Image déjà chargée (cache) — vérifier tout de suite.
+      check();
+    } else {
+      img.addEventListener('load', check, { once: true });
+      img.addEventListener('error', swap, { once: true });
+    }
   });
 </script>
 

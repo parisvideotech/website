@@ -105,16 +105,22 @@
   status = 301
   force = true
 
-# Page Équipe fusionnée dans /rejoignez-nous/#equipe
+# /rejoignez-nous/ a fusionné dans /equipe/ (cible canonique)
 [[redirects]]
-  from = "/equipe"
-  to = "/rejoignez-nous/#equipe"
+  from = "/rejoignez-nous"
+  to = "/equipe/"
   status = 301
   force = true
 
 [[redirects]]
-  from = "/equipe/"
-  to = "/rejoignez-nous/#equipe"
+  from = "/rejoignez-nous/"
+  to = "/equipe/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/rejoignez-nous/*"
+  to = "/equipe/:splat"
   status = 301
   force = true
 
