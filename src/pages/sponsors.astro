@@ -1,0 +1,353 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/Button.astro';
+import { SITE } from '@/data/site';
+import sponsors from '@/data/sponsors.json';
+import sponsorship from '@/data/sponsorship.json';
+
+const mailto = `mailto:${sponsorship.contact_email}?subject=${encodeURIComponent('Sponsoring Paris Video Tech')}`;
+---
+
+<BaseLayout
+  title="Sponsors"
+  description="Devenir partenaire de Paris Video Tech : nos formules de sponsoring annuel, par meetup, ou événements spéciaux (IBC, NAB)."
+>
+  <!-- Hero -->
+  <section class="sponsors-hero">
+    <div class="container">
+      <p class="sponsors-hero__eyebrow">Les sponsors · Ils font vivre l'asso</p>
+      <h1 class="sponsors-hero__title">Ensemble, on fait grandir l'écosystème.</h1>
+      <p class="sponsors-hero__lead">
+        Paris Video Tech est une association portée par des bénévoles. Nos sponsors rendent
+        possible la gratuité des meetups, l'accueil dans des lieux de qualité, et la
+        captation/diffusion des talks. Voici comment les rejoindre.
+      </p>
+    </div>
+  </section>
+
+  <!-- Sponsors actuels -->
+  <section class="current-sponsors">
+    <div class="container">
+      <p class="current-sponsors__label">Partenaires 2026</p>
+      <ul class="current-sponsors__grid">
+        {
+          sponsors.map((sponsor) => (
+            <li>
+              <a href={sponsor.url} target="_blank" rel="noopener noreferrer">
+                <img src={sponsor.logo} alt={sponsor.name} loading="lazy" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Les 3 formules -->
+  <section class="plans">
+    <div class="container">
+      <h2 class="plans__heading">Les formules 2026</h2>
+      <div class="plans__grid">
+        {
+          sponsorship.plans.map((plan) => (
+            <article class:list={['plan', plan.featured && 'plan--featured']} data-reveal>
+              {plan.featured && (
+                <span class="plan__badge">{plan.featured_label}</span>
+              )}
+              <p class="plan__eyebrow">{plan.label}</p>
+              <h3 class="plan__name">{plan.name}</h3>
+              <p class="plan__price">
+                {plan.price}
+                {plan.price_note && <span class="plan__price-note"> · {plan.price_note}</span>}
+              </p>
+              <ul class="plan__benefits">
+                {plan.benefits.map((b) => (
+                  <li>{b}</li>
+                ))}
+              </ul>
+              <a href={mailto} class="plan__cta">
+                {plan.cta_label} →
+              </a>
+            </article>
+          ))
+        }
+      </div>
+
+      <p class="plans__note">
+        <strong>Note RGPD :</strong> les sponsors n'ont jamais accès aux listes de participants
+        ni aux emails — c'est l'esprit de la communauté.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA contact -->
+  <section class="contact-cta">
+    <div class="container">
+      <h2>Une question, un cas spécifique ?</h2>
+      <p>
+        Échangeons. Écris à
+        <a href={`mailto:${sponsorship.contact_email}`}>{sponsorship.contact_email}</a> et on
+        revient vers toi sous 48h.
+      </p>
+      <Button href={mailto}>Nous contacter</Button>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .sponsors-hero {
+    padding-block: var(--space-16) var(--space-12);
+    background-color: var(--color-surface-alt);
+  }
+
+  .sponsors-hero__eyebrow {
+    font-family: var(--font-display);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--color-primary);
+    margin-bottom: var(--space-3);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .sponsors-hero__title {
+    font-size: clamp(var(--font-size-2xl), 4vw, var(--font-size-4xl));
+    margin-bottom: var(--space-4);
+    max-width: 18ch;
+  }
+
+  .sponsors-hero__lead {
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    max-width: 65ch;
+  }
+
+  /* Sponsors actuels */
+  .current-sponsors {
+    padding-block: var(--space-12);
+  }
+
+  .current-sponsors__label {
+    font-family: var(--font-display);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-6);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .current-sponsors__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .current-sponsors__grid a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    padding: var(--space-3);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .current-sponsors__grid a:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .current-sponsors__grid img {
+    max-height: 70px;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* Formules */
+  .plans {
+    padding-block: var(--space-8) var(--space-16);
+  }
+
+  .plans__heading {
+    margin-bottom: var(--space-8);
+    font-size: var(--font-size-2xl);
+  }
+
+  .plans__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+
+  .plan {
+    position: relative;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .plan:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .plan--featured {
+    background-color: var(--color-text);
+    color: var(--color-text-inverse);
+    border-color: var(--color-text);
+    box-shadow: var(--shadow-md);
+  }
+
+  .plan__badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-display);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+
+  .plan__eyebrow {
+    font-family: var(--font-display);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+  }
+
+  .plan--featured .plan__eyebrow {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .plan__name {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-3);
+    color: inherit;
+  }
+
+  .plan--featured .plan__name {
+    color: var(--color-text-inverse);
+  }
+
+  .plan__price {
+    font-family: var(--font-display);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+  }
+
+  .plan--featured .plan__price {
+    color: var(--color-primary);
+  }
+
+  .plan__price-note {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-regular);
+  }
+
+  .plan--featured .plan__price-note {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .plan__benefits {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--space-6);
+    flex-grow: 1;
+  }
+
+  .plan__benefits li {
+    padding-left: var(--space-6);
+    position: relative;
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-sm);
+  }
+
+  .plan__benefits li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .plan--featured .plan__benefits li::before {
+    color: var(--color-primary);
+  }
+
+  .plan__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-display);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .plan__cta:hover {
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .plan--featured .plan__cta:hover {
+    background-color: var(--color-text-inverse);
+  }
+
+  .plans__note {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+    text-align: center;
+    max-width: 60ch;
+    margin-inline: auto;
+  }
+
+  /* CTA contact */
+  .contact-cta {
+    background-color: var(--color-surface-alt);
+    padding-block: var(--space-12) var(--space-16);
+    text-align: center;
+  }
+
+  .contact-cta h2 {
+    margin-bottom: var(--space-3);
+  }
+
+  .contact-cta p {
+    margin-bottom: var(--space-6);
+    color: var(--color-text-muted);
+    max-width: 50ch;
+    margin-inline: auto;
+  }
+</style>

@@ -97,7 +97,10 @@ const firstYear = pastMeetups.length
         <a href="/a-propos/">En savoir plus →</a>
       </p>
       <p class="about__support">
-        <Button href={SITE.donations.helloasso} external>Nous soutenir</Button>
+        <Button href="/sponsors/">Devenir sponsor</Button>
+        <Button href={SITE.donations.helloasso} variant="ghost" external>
+          Faire un don
+        </Button>
       </p>
     </div>
   </section>
@@ -281,6 +284,9 @@ const firstYear = pastMeetups.length
 
   .about__support {
     margin-top: var(--space-6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
   }
 
   .sponsors h2 {

@@ -1,0 +1,50 @@
+{
+  "plans": [
+    {
+      "id": "annual",
+      "label": "Annuel · 10 places",
+      "name": "Partenaire annuel",
+      "price": "1 000 €",
+      "price_note": "par an",
+      "featured": false,
+      "benefits": [
+        "Logo sur le site PVT toute l'année",
+        "Logo sur la slide d'ouverture de chaque meetup",
+        "Droit d'usage du logo PVT"
+      ],
+      "cta_label": "Devenir partenaire annuel"
+    },
+    {
+      "id": "meetup",
+      "label": "Par meetup · 4 places/an",
+      "name": "Parrain d'un meetup",
+      "price": "5 000 €",
+      "price_note": "par édition",
+      "featured": true,
+      "featured_label": "Le plus populaire",
+      "benefits": [
+        "Tout le pack annuel inclus",
+        "Sponsoring d'une édition entière",
+        "Prise de parole 3 min en ouverture",
+        "Goodies + bannière sur place",
+        "Stand démo à l'Antenne"
+      ],
+      "cta_label": "Parrainer un meetup"
+    },
+    {
+      "id": "events",
+      "label": "Événements · IBC + NAB",
+      "name": "Sponsor événement spécial",
+      "price": "Sur devis",
+      "featured": false,
+      "benefits": [
+        "Meta-meetup à l'IBC (Amsterdam)",
+        "Drinks au Chandelier Bar (NAB Vegas)",
+        "Visibilité sur tous les supports",
+        "Stickers + projection logo"
+      ],
+      "cta_label": "Discuter d'un événement"
+    }
+  ],
+  "contact_email": "contact@parisvideotech.com"
+}
