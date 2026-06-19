@@ -53,8 +53,8 @@ Ouvre un terminal (PowerShell sous Windows, Terminal sous macOS) :
 
 ```bash
 cd <où tu veux mettre le projet>
-git clone https://github.com/<owner>/pvt-website.git
-cd pvt-website
+git clone https://github.com/parisvideotech/website.git
+cd website
 npm install
 ```
 
