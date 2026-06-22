@@ -14,7 +14,7 @@ export const SITE = {
   locale: 'fr-FR',
   timezone: 'Europe/Paris',
   social: {
-    linkedin: 'https://www.linkedin.com/groups/4509529',
+    linkedin: 'https://www.linkedin.com/company/paris-video-tech/',
     twitter: 'https://twitter.com/ParisVideoTech/',
     meetup: 'https://www.meetup.com/fr-FR/Paris-Video-Tech/',
   },
