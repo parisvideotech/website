@@ -1,8 +1,18 @@
 [
+   {
+    "name": "Synamedia",
+    "url": "https://synamedia.com/",
+    "logo": "/images/sponsors/synamedia.png"
+  },
   {
     "name": "Consort NT",
     "url": "https://consort-group.com/",
-    "logo": "/images/sponsors/consort-nt.jpg"
+    "logo": "/images/sponsors/consort-nt.png"
+  },
+  {
+    "name": "OVHCloud",
+    "url": "https://www.ovhcloud.com/",
+    "logo": "/images/sponsors/ovh.png"
   },
   {
     "name": "Akamai",
