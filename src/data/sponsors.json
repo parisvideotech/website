@@ -1,7 +1,12 @@
 [
+     {
+    "name": "multiCAM",
+    "url": "https://www.multicam-systems.com/fr/",
+    "logo": "/images/sponsors/multicam.png"
+  },
    {
-    "name": "Synamedia",
-    "url": "https://synamedia.com/",
+    "name": "Quortex",
+    "url": "linkedin.com/company/quortex-io/",
     "logo": "/images/sponsors/synamedia.png"
   },
   {
